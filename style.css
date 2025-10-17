@@ -122,7 +122,7 @@ body {
 }
 
 .stress-indicator {
-    display: flex;
+    display: inline-flex; /* make size fit content horizontally */
     align-items: center;
     gap: var(--spacing-sm); /* Reduced from md (12px) to sm (8px) */
     background: var(--color-surface-lighter);
@@ -130,6 +130,8 @@ body {
     border-radius: 12px;
     border: 1px solid var(--color-surface-lighter);
     transition: all 0.3s;
+    width: auto; /* ensure it doesn't stretch to available space */
+    max-width: none;
 }
 
 .stress-indicator.stress-high {
@@ -846,24 +848,25 @@ button {
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .header-content {
-        flex-direction: column;
-        align-items: stretch;
+        /* Keep horizontal layout on mobile to preserve desktop arrangement */
+        flex-direction: row;
+        align-items: center;
         gap: var(--spacing-sm);
     }
     .header-right {
-        justify-content: space-between;
-        width: 100%;
+        justify-content: flex-end;
+        width: auto;
     }
     .stress-indicator {
-        order: 2;
-        width: 100%;
+        /* keep size-fitting behavior */
+        width: auto;
         justify-content: flex-start;
         padding: var(--spacing-sm);
     }
     .user-stats {
-        order: 1;
-        align-self: flex-end;
-        margin-right: var(--spacing-sm);
+        order: initial;
+        align-self: center;
+        margin-right: 0;
     }
     /* Sidebar becomes bottom sheet on mobile */
     .left-sidebar {
@@ -904,18 +907,35 @@ button {
     .header-content {
         gap: var(--spacing-xs);
         padding: var(--spacing-xs) 0;
+        /* Stack title above the status row on phones */
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    /* Ensure header stays above the sliding sidebar */
+    .header { z-index: 60; }
+    /* Make the header right area full width and place status under the title */
+    .header-right {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
     }
     .app-title {
         font-size: 1em;
+        align-self: center; /* center title horizontally on stacked header */
+        text-align: center;
+        width: 100%;
+        margin: 0 auto;
     }
     .stress-indicator {
         padding: 6px;
         border-radius: 10px;
     }
-    /* Center FAB and reduce size for thumb reach */
+    /* Move FAB to left on very small screens for thumb reach */
     .fab-container {
-        right: 50%;
-        transform: translateX(50%);
+        left: 12px;
+        right: auto;
+        transform: none;
         bottom: 12px;
         gap: 6px;
     }
@@ -935,6 +955,22 @@ button {
     }
     #level-emoji { font-size: 1.05em; }
     #level-number { font-size: 0.95em; color: #c92a2a; }
+    
+    /* Sidebar slides in from the LEFT under the header and does not cover it */
+    .left-sidebar {
+        top: 164px; /* moved down by at least 64px (was 100px) */
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 164px);
+        border-radius: 0;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        z-index: 40; /* below header */
+        overflow-y: auto;
+    }
+    .left-sidebar:not(.hidden) {
+        transform: translateX(0);
+    }
 }
 
 #fab-add-goal {

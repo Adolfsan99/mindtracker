@@ -212,7 +212,8 @@ elements.stressIndicator.addEventListener('click', () => {
     ];
 
     // Set dynamic modal title using current mood
-    const titleText = `¿Por qué estás ${mood} y cómo reducirlo?`;
+    // Request 1: Change title to "¿Por qué estás [estado de animo]?"
+    const titleText = `¿Por qué estás ${mood}?`;
     const stressHelpTitleEl = document.getElementById('stress-help-title');
     if (stressHelpTitleEl) stressHelpTitleEl.textContent = titleText;
 
@@ -262,7 +263,15 @@ function renderMainList() {
     updateLevelDisplay();
 }
 
+function recalcXpFromCompletedGoals() {
+    // Sum points only for goals that are completed (archived === true)
+    const completedGoals = appState.items.filter(i => i.type === 'goal' && i.isArchived && typeof i.points === 'number');
+    appState.user.xp = completedGoals.reduce((s, g) => s + (g.points || 0), 0);
+}
+
 function updateStateAndRender() {
+    // Recalculate XP from completed goals before saving and rendering
+    recalcXpFromCompletedGoals();
     saveState(appState);
     renderMainList();
 }
@@ -578,8 +587,25 @@ document.querySelectorAll('.modal-close-icon').forEach(button => {
 const sidebarToggle = document.getElementById('sidebar-toggle');
 // const leftSidebar = document.getElementById('left-sidebar'); // Removed redundant definition
 
+// --- New: adjust sidebar position under header based on header height ---
+function adjustSidebarTop() {
+    const headerEl = document.querySelector('.header');
+    const sidebarEl = elements.leftSidebar;
+    if (!headerEl || !sidebarEl) return;
+    const headerRect = headerEl.getBoundingClientRect();
+    // Use header height plus a small gap (4px) to avoid overlapping
+    const topValue = Math.ceil(headerRect.height + 4);
+    sidebarEl.style.top = `${topValue}px`;
+}
+
+// Ensure sidebar top is recalculated when window resizes or content/layout changes
+window.addEventListener('resize', adjustSidebarTop);
+window.addEventListener('orientationchange', adjustSidebarTop);
+
 sidebarToggle.addEventListener('click', () => {
     elements.leftSidebar.classList.toggle('hidden');
+    // Recompute top whenever sidebar is toggled (important for dynamic header sizes)
+    adjustSidebarTop();
 });
 
 function toggleFabMenu() {
@@ -786,6 +812,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.fabAddTaskButton.classList.add('hidden');
     elements.fabAddGoalButton.classList.add('hidden');
     renderMainList();
+    // Set initial sidebar top after layout is ready
+    setTimeout(adjustSidebarTop, 0);
 });
 
 function initializeAppTitle() {
