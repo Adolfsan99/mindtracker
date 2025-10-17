@@ -151,7 +151,7 @@ function calculateStress() {
     
     if (totalItems === 0) {
         elements.stressEmoji.textContent = '😌';
-        elements.stressPercentage.textContent = '100% Calmado';
+        elements.stressPercentage.textContent = 'Calmado';
         elements.stressIndicator.className = 'stress-indicator stress-low';
         return;
     }
@@ -178,7 +178,7 @@ function calculateStress() {
         stressClass = 'stress-high';
     } else if (stressRatio > 0.33) { 
         emoji = '😐'; // Neutral/Moderate Stress
-        mood = 'Neutro';
+        mood = 'Tenso';
         stressClass = 'stress-medium';
     } else {
         emoji = '😊'; // Calm
@@ -187,7 +187,7 @@ function calculateStress() {
     }
     
     elements.stressEmoji.textContent = emoji;
-    elements.stressPercentage.textContent = `${calmPercentage}% ${mood}`;
+    elements.stressPercentage.textContent = `${mood}`; // only show mood word, percentage removed
     elements.stressIndicator.className = `stress-indicator ${stressClass}`;
     // Expose mood for conditional help modal display
     elements.stressIndicator.dataset.mood = mood;
@@ -196,19 +196,25 @@ function calculateStress() {
 elements.stressIndicator.addEventListener('click', () => {
     // Only show stress help if mood is Estresado or Neutro
     const mood = elements.stressIndicator.dataset.mood || '';
-    if (mood !== 'Estresado' && mood !== 'Neutro') {
+    if (mood !== 'Estresado' && mood !== 'Tenso') {
         // do nothing when Calmado
         return;
     }
     const total = appState.items.filter(i => !i.isArchived).length;
     const unresolved = appState.items.filter(i => !i.isArchived && !i.isMarked).length;
     
-    // 1. Updated stress reduction tips based on user request
+    // Improved suggestions phrasing
     const tips = [
-        'Marca como resueltas las actividades completadas.',
-        'Archiva tareas terminadas para despejar la lista.',
-        'Evite crear objetivos grandes, los objetivos son solo pasos.',
+        'Desenfoca actividades y objetivos que no son prioritarios en este momento.',
+        'Archiva actividades ya completadas o las que no realizarás en el corto plazo.',
+        'Evita crear objetivos demasiado grandes; define pasos próximos y manejables.',
+        'Marca y celebra los objetivos alcanzados.'
     ];
+
+    // Set dynamic modal title using current mood
+    const titleText = `¿Por qué estás ${mood} y cómo reducirlo?`;
+    const stressHelpTitleEl = document.getElementById('stress-help-title');
+    if (stressHelpTitleEl) stressHelpTitleEl.textContent = titleText;
 
     elements.stressHelpContent.innerHTML = `
         <p>Tienes ${unresolved} de ${total} elementos pendientes.</p>
@@ -275,7 +281,6 @@ function handleEditItem(id) {
 
     editingItemId = id; 
 
-    // Reset forms just in case
     elements.itemTaskForm.reset();
     elements.itemGoalForm.reset();
 
@@ -287,7 +292,7 @@ function handleEditItem(id) {
         elements.itemTaskDescription.value = item.description || '';
         showModal(elements.itemTaskModal);
     } else if (item.type === 'goal') {
-        elements.itemGoalModalTitle.textContent = 'Editar Objetivo';
+        elements.itemGoalModalTitle.textContent = 'Editar Hito';
         elements.itemGoalSaveButton.textContent = 'Actualizar';
         elements.itemGoalIcon.value = item.icon;
         elements.itemGoalTitle.value = item.title;
@@ -399,40 +404,22 @@ function setupDragAndDrop() {
             card.classList.add('dragging');
             e.dataTransfer.setData('text/plain', card.dataset.id); 
         });
-
-        card.addEventListener('dragenter', (e) => {
-            e.preventDefault();
-            if (draggedItem && draggedItem !== card) {
-                card.classList.add('over');
-                const bounding = card.getBoundingClientRect();
-                const offset = bounding.y + (bounding.height / 2);
-
-                if (e.clientY > offset) {
-                    elements.itemList.insertBefore(draggedItem, card.nextSibling);
-                } else {
-                    elements.itemList.insertBefore(draggedItem, card);
-                }
-            }
-        });
-
-        card.addEventListener('dragover', (e) => {
-            e.preventDefault(); 
-            e.dataTransfer.dropEffect = 'move';
-        });
-
-        card.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const targetId = card.dataset.id;
-            const sourceId = draggedItem ? draggedItem.dataset.id : e.dataTransfer.getData('text/plain');
-            
-            reorderItems(sourceId, targetId);
-        });
-
+       
+        // Ensure final DOM order is saved even if user releases without a drop event
         card.addEventListener('dragend', () => {
+            persistCurrentDomOrder();
             elements.itemList.querySelectorAll('.item-card').forEach(c => c.classList.remove('dragging', 'over'));
             draggedItem = null;
         });
     });
+}
+
+function persistCurrentDomOrder() {
+    const domOrderIds = Array.from(elements.itemList.querySelectorAll('.item-card')).map(c => c.dataset.id);
+    const archivedItems = appState.items.filter(item => item.isArchived);
+    const newVisibleItems = domOrderIds.map(id => appState.items.find(item => item.id === id)).filter(Boolean);
+    appState.items = [...newVisibleItems, ...archivedItems];
+    saveState(appState);
 }
 
 function reorderItems(sourceId, targetId) {
@@ -668,7 +655,7 @@ function renderModalList(listElement, items, type) {
 
 function renderArchivedModal() {
     const archivedTasks = appState.items.filter(item => item.type === 'task' && item.isArchived);
-    renderModalList(elements.archivedList, archivedTasks, 'tareas');
+    renderModalList(elements.archivedList, archivedTasks, 'actividades');
 }
 
 elements.showArchivedButton.addEventListener('click', () => {
@@ -679,7 +666,7 @@ elements.showArchivedButton.addEventListener('click', () => {
 
 
 function renderMilestonesModal() {
-    // Milestones are archived goals
+    // Milestones are archived goals (hitos)
     const milestones = appState.items.filter(item => item.type === 'goal' && item.isArchived);
     renderModalList(elements.milestonesList, milestones, 'hitos');
 }

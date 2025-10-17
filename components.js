@@ -18,9 +18,9 @@ export function createItemCard(item, isInModal = false) {
     // Allow drag only if not in modal and not archived (though rendering handles archived status)
     card.setAttribute('draggable', isInModal ? 'false' : 'true');
 
-    const pointsDisplay = item.type === 'goal' ? `<span style="font-size: 0.8em; color: var(--color-secondary);">(${item.points} pts)</span>` : '';
+    const pointsDisplay = item.type === 'goal' ? `<span class="item-points">(${item.points} pts)</span>` : '';
 
-    // Description is hidden by default as per latest requirement
+    // Keep description toggle default hidden as before but ensure toggle text is "Mostrar descripción..." initially
     const isDescriptionHidden = true; 
     
     const descriptionToggleText = item.description ? 'Mostrar descripción...' : '';
@@ -48,22 +48,17 @@ export function createItemCard(item, isInModal = false) {
 
 function generateActionButtons(item, isInModal) {
     if (isInModal) {
-        // Actions for Archived/Milestone items: Recover, Delete
-        // Use consistent icons: ↩️ for Recover, 🗑️ for Delete
         return `
             <button class="action-button recover-item primary-button" data-id="${item.id}" title="Recuperar">↩️</button>
             <button class="action-button delete-item danger-button" data-id="${item.id}" title="Eliminar Permanentemente">🗑️</button>
         `;
     } else {
         // Actions for main list items: Edit, Mark/Unmark, Archive/Complete, Delete
-        
-        // Mark/Unmark: Use icons
-        const markIcon = item.isMarked ? '👀' : '✔️'; // Eye for pending (unmarked), Check for resolved (marked)
-        const markTitle = item.isMarked ? 'Desmarcar (Pendiente)' : 'Marcar (Resuelto)';
-        
-        // Archive/Complete: Use icons
-        const archiveIcon = item.type === 'task' ? '📦' : '🏆';
-        const archiveTitle = item.type === 'task' ? 'Archivar Tarea' : 'Completar Hito';
+        const markIcon = item.isMarked ? '👀' : '✔️';
+        const markTitle = item.isMarked ? 'Enfocar' : 'Desenfocar';
+        // For tasks use "Liberar actividad" with dove emoji; goals keep their "Completar Hito" behavior
+        const archiveIcon = item.type === 'task' ? '🕊️' : '🧩';
+        const archiveTitle = item.type === 'task' ? 'Liberar actividad' : 'Completar Hito';
         
         return `
             <button class="action-button edit-item edit" data-id="${item.id}" title="Editar">✏️</button>
@@ -95,4 +90,16 @@ export function showModal(modalElement) {
 export function hideModal(modalElement) {
     modalElement.classList.add('hidden');
     modalElement.onclick = null;
+}
+
+function renderModalList(listElement, items, type) {
+    listElement.innerHTML = '';
+
+    if (items.length === 0) {
+        listElement.innerHTML = `<p style="text-align: center;">No hay ${type} en archivo.</p>`;
+        return;
+    }
+
+    const listItems = items.map(item => createItemCard(item, true));
+    listElement.append(...listItems);
 }

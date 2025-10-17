@@ -47,9 +47,9 @@
         <!-- Left Sidebar -->
         <aside id="left-sidebar" class="left-sidebar hidden">
             <nav class="sidebar-nav">
-                <button id="show-archived-button" class="sidebar-button">📦 Archivadas</button>
-                <button id="show-milestones-button" class="sidebar-button">🏆 Hitos</button>
-                <button id="show-data-management-button" class="sidebar-button primary-button">⚙️ Gestión de Datos</button>
+                <button id="show-archived-button" class="sidebar-button">🧠 Memoria</button>
+                <button id="show-milestones-button" class="sidebar-button">🗺️ Progreso</button>
+                <button id="show-data-management-button" class="sidebar-button">⚙️ Gestión de Datos</button>
             </nav>
         </aside>
 
@@ -67,7 +67,7 @@
     <!-- Floating Action Button -->
     <div id="fab-container" class="fab-container">
         <button id="fab-add-task" class="fab-sub-button" title="Añadir Actividad">💭</button>
-        <button id="fab-add-goal" class="fab-sub-button primary-button" title="Añadir Objetivo">🎯</button>
+        <button id="fab-add-goal" class="fab-sub-button primary-button" title="Añadir Hito">🧩</button>
         <button id="fab-main-button" class="fab-main-button primary-button" title="Agregar">+</button>
     </div>
 
@@ -105,11 +105,11 @@
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <button class="modal-close-icon">✕</button>
-                <h3 id="item-goal-modal-title">Crear Nuevo Objetivo</h3>
+                <h3 id="item-goal-modal-title">Crear Nuevo Hito</h3>
                 <form id="item-goal-form">
                     <div class="form-group">
                         <label for="goal-item-icon">Icono (Emoji)</label>
-                        <input type="text" id="goal-item-icon" required maxlength="2" value="🎯" placeholder="🎯">
+                        <input type="text" id="goal-item-icon" required maxlength="2" value="🧩" placeholder="🧩">
                     </div>
                     <div class="form-group">
                         <label for="goal-item-title">Título (máx 40 caracteres)</label>
@@ -151,8 +151,8 @@
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <button class="modal-close-icon">✕</button>
-                <h3>📦 Tareas Archivadas</h3>
-                <p class="modal-description">Recupera o elimina tus tareas completadas.</p>
+                <h3>🧠 Memoria</h3>
+                <p class="modal-description">Recupera o elimina tus actividades completadas.</p>
                 <div id="archived-list" class="modal-list"></div>
                 <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
             </div>
@@ -163,8 +163,8 @@
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <button class="modal-close-icon">✕</button>
-                <h3>🏆 Hitos Completados</h3>
-                <p class="modal-description">Tus objetivos principales logrados.</p>
+                <h3>🗺️ Progreso</h3>
+                <p class="modal-description">Tus hitos logrados y progreso.</p>
                 <div id="milestones-list" class="modal-list"></div>
                 <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
             </div>
@@ -178,8 +178,8 @@
                 <h3>⚙️ Gestión de Datos</h3>
                 <p class="modal-description">Administra tu progreso y respaldos.</p>
                 <div class="data-management-grid">
-                    <button id="save-data-button" class="data-button primary-button" title="Descarga un respaldo">💾 Exportar</button>
-                    <button id="load-data-button" class="data-button secondary-button" title="Carga un respaldo anterior">📂 Importar</button>
+                    <button id="save-data-button" class="data-button primary-button" title="Guardar respaldo local">💾 Guardar Partida</button>
+                    <button id="load-data-button" class="data-button secondary-button" title="Cargar respaldo anterior">📂 Cargar Partida</button>
                     <button id="reset-score-button" class="data-button warning-button" title="Reinicia nivel y XP">🔄 Reiniciar Puntaje</button>
                     <button id="delete-all-data-button" class="data-button danger-button" title="Borra todo permanentemente">🗑️ Eliminar Todo</button>
                 </div>
@@ -192,7 +192,7 @@
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <button class="modal-close-icon">✕</button>
-                <h3>🧠 Por qué sientes estrés y cómo reducirlo</h3>
+                <h3 id="stress-help-title">🧠 Por qué estás aquí y cómo reducirlo</h3>
                 <div id="stress-help-content" class="modal-description"></div>
                 <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
             </div>
