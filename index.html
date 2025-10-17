@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Tracker - Gestión de Estrés</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "data_manager": "./data_manager.js",
+                "app": "./app.js",
+                "components": "./components.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Mostrar menú">☰</button>
+                <h1 class="app-title">
+                    <span id="app-title-display">Mindful Tracker</span>
+                </h1>
+            </div>
+            <div class="header-right">
+                <div class="stress-indicator" id="stress-indicator">
+                    <span id="stress-emoji" class="stress-emoji">😌</span>
+                    <div class="stress-info">
+                        <span class="stress-label">Estado</span>
+                        <span id="stress-percentage" class="stress-percentage">100%</span>
+                    </div>
+                </div>
+                <div class="user-stats">
+                    <span class="stat-label">Nivel</span>
+                    <button id="user-level-display" class="stat-value level-button" title="Ver detalles de XP">
+                        <span id="level-emoji"></span>
+                        <span id="level-number">1</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Left Sidebar -->
+        <aside id="left-sidebar" class="left-sidebar hidden">
+            <nav class="sidebar-nav">
+                <button id="show-archived-button" class="sidebar-button">📦 Archivadas</button>
+                <button id="show-milestones-button" class="sidebar-button">🏆 Hitos</button>
+                <button id="show-data-management-button" class="sidebar-button primary-button">⚙️ Gestión de Datos</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <section id="item-list-section" class="main-content">
+            <div class="section-header">
+                <h2 id="list-section-header">Tus Actividades y Objetivos</h2>
+            </div>
+            <div id="item-list" class="item-list sortable-list">
+                <!-- Items rendered here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Button -->
+    <div id="fab-container" class="fab-container">
+        <button id="fab-add-task" class="fab-sub-button" title="Añadir Actividad">💭</button>
+        <button id="fab-add-goal" class="fab-sub-button primary-button" title="Añadir Objetivo">🎯</button>
+        <button id="fab-main-button" class="fab-main-button primary-button" title="Agregar">+</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="modals-container">
+        <!-- Add Activity Modal (no difficulty) -->
+        <div id="item-task-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3 id="item-task-modal-title">Crear Nueva Actividad</h3>
+                <form id="item-task-form">
+                    <div class="form-group">
+                        <label for="task-item-icon">Icono (Emoji)</label>
+                        <input type="text" id="task-item-icon" required maxlength="2" value="💭" placeholder="😊">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-item-title">Título (máx 40 caracteres)</label>
+                        <input type="text" id="task-item-title" required maxlength="40" placeholder="Ej: Ejercicio matinal">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-item-description">Descripción (opcional)</label>
+                        <textarea id="task-item-description" placeholder="Añade detalles sobre esta tarea..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="close-modal-button secondary-button">Cancelar</button>
+                        <button type="submit" id="task-save-button" class="primary-button">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Goal Modal (includes difficulty) -->
+        <div id="item-goal-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3 id="item-goal-modal-title">Crear Nuevo Objetivo</h3>
+                <form id="item-goal-form">
+                    <div class="form-group">
+                        <label for="goal-item-icon">Icono (Emoji)</label>
+                        <input type="text" id="goal-item-icon" required maxlength="2" value="🎯" placeholder="🎯">
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-item-title">Título (máx 40 caracteres)</label>
+                        <input type="text" id="goal-item-title" required maxlength="40" placeholder="Ej: Correr 5km">
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-item-description">Descripción (opcional)</label>
+                        <textarea id="goal-item-description" placeholder="Añade detalles sobre este objetivo..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-difficulty">Dificultad (recompensa XP)</label>
+                        <select id="goal-difficulty">
+                            <option value="easy">🟢 Fácil (50 XP)</option>
+                            <option value="medium">🟡 Medio (100 XP)</option>
+                            <option value="hard">🔴 Difícil (200 XP)</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="close-modal-button secondary-button">Cancelar</button>
+                        <button type="submit" id="goal-save-button" class="primary-button">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- XP Details Modal -->
+        <div id="xp-details-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3>📊 Detalles de Progreso</h3>
+                <div id="xp-details-content" class="modal-description"></div>
+                <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Archived Tasks Modal -->
+        <div id="archived-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3>📦 Tareas Archivadas</h3>
+                <p class="modal-description">Recupera o elimina tus tareas completadas.</p>
+                <div id="archived-list" class="modal-list"></div>
+                <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Milestones Modal -->
+        <div id="milestones-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3>🏆 Hitos Completados</h3>
+                <p class="modal-description">Tus objetivos principales logrados.</p>
+                <div id="milestones-list" class="modal-list"></div>
+                <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Data Management Modal -->
+        <div id="data-management-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3>⚙️ Gestión de Datos</h3>
+                <p class="modal-description">Administra tu progreso y respaldos.</p>
+                <div class="data-management-grid">
+                    <button id="save-data-button" class="data-button primary-button" title="Descarga un respaldo">💾 Exportar</button>
+                    <button id="load-data-button" class="data-button secondary-button" title="Carga un respaldo anterior">📂 Importar</button>
+                    <button id="reset-score-button" class="data-button warning-button" title="Reinicia nivel y XP">🔄 Reiniciar Puntaje</button>
+                    <button id="delete-all-data-button" class="data-button danger-button" title="Borra todo permanentemente">🗑️ Eliminar Todo</button>
+                </div>
+                <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Stress Help Modal -->
+        <div id="stress-help-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <button class="modal-close-icon">✕</button>
+                <h3>🧠 Por qué sientes estrés y cómo reducirlo</h3>
+                <div id="stress-help-content" class="modal-description"></div>
+                <button class="close-modal-button secondary-button" style="width: 100%; margin-top: 15px;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
