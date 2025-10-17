@@ -438,19 +438,17 @@ function setupDragAndDrop() {
 function reorderItems(sourceId, targetId) {
     if (sourceId === targetId) return;
 
-    const visibleItems = appState.items.filter(item => !item.isArchived);
+    // Build new visible order from current DOM (ensures final DOM order is the source of truth)
+    const domOrderIds = Array.from(elements.itemList.querySelectorAll('.item-card')).map(c => c.dataset.id);
+
     const archivedItems = appState.items.filter(item => item.isArchived);
-    
-    const visibleSourceIndex = visibleItems.findIndex(item => item.id === sourceId);
-    const visibleTargetIndex = visibleItems.findIndex(item => item.id === targetId);
+    const newVisibleItems = domOrderIds
+        .map(id => appState.items.find(item => item.id === id))
+        .filter(Boolean); // keep only matched items (should be all non-archived)
 
-    if (visibleSourceIndex === -1 || visibleTargetIndex === -1) return;
+    // Preserve archived items after visible items
+    appState.items = [...newVisibleItems, ...archivedItems];
 
-    const [itemToMove] = visibleItems.splice(visibleSourceIndex, 1);
-    visibleItems.splice(visibleTargetIndex, 0, itemToMove);
-    
-    appState.items = [...visibleItems, ...archivedItems];
-    
     updateStateAndRender(); 
 }
 
