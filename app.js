@@ -421,6 +421,29 @@ function setupDragAndDrop() {
             draggedItem = null;
         });
     });
+
+    // New: allow reordering by dragging over the list and inserting the dragged element
+    elements.itemList.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const target = e.target.closest('.item-card');
+        if (!draggedItem) return;
+        if (!target || target === draggedItem) return;
+        const rect = target.getBoundingClientRect();
+        const after = (e.clientY > rect.top + rect.height / 2);
+        if (after) {
+            if (target.nextSibling !== draggedItem) target.parentNode.insertBefore(draggedItem, target.nextSibling);
+        } else {
+            if (target !== draggedItem.nextSibling) target.parentNode.insertBefore(draggedItem, target);
+        }
+    });
+
+    elements.itemList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        // On drop, ensure order persisted and cleanup classes
+        elements.itemList.querySelectorAll('.item-card').forEach(c => c.classList.remove('dragging', 'over'));
+        persistCurrentDomOrder();
+        draggedItem = null;
+    });
 }
 
 function persistCurrentDomOrder() {
