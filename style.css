@@ -575,7 +575,8 @@ button {
 /* FAB */
 .fab-container {
     position: fixed;
-    right: var(--spacing-lg); /* Reduced from 24px to 16px */
+    left: var(--spacing-lg);
+    right: auto;
     bottom: var(--spacing-lg); /* Reduced from 24px to 16px */
     display: flex;
     flex-direction: column;
@@ -904,6 +905,11 @@ button {
 }
 
 @media (max-width: 480px) {
+    /* 2. Global font size reduction (x0.80) */
+    html {
+        font-size: 80%;
+    }
+    
     .header-content {
         gap: var(--spacing-xs);
         padding: var(--spacing-xs) 0;
@@ -917,7 +923,8 @@ button {
     .header-right {
         width: 100%;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end; /* 4. Align State and Level to the right */
+        gap: var(--spacing-md);
         margin-top: 6px;
     }
     .app-title {

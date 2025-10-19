@@ -204,12 +204,21 @@ elements.stressIndicator.addEventListener('click', () => {
     const unresolved = appState.items.filter(i => !i.isArchived && !i.isMarked).length;
     
     // Improved suggestions phrasing
-    const tips = [
+    // Base suggestions (rendered with spacing between paragraphs)
+    const baseTips = [
         'Desenfoca actividades y objetivos que no son prioritarios en este momento.',
         'Archiva actividades ya completadas o las que no realizarás en el corto plazo.',
-        'Evita crear objetivos demasiado grandes; define pasos próximos y manejables.',
-        'Marca y celebra los objetivos alcanzados.'
+        'Evita crear hitos demasiado grandes; y crea hitos más manejables.'
     ];
+
+    // Mood-specific single-line suggestions
+    const estresadoTip = 'Prioriza calma sobre productividad o autoexigencia.';
+    const tensoTip = 'Si se debe hacer algo, mantener la concentración y la consciencia puede ayudar a avanzar aunque cueste.';
+
+    // Build final tips array depending on mood
+    const tips = [...baseTips];
+    if (mood === 'Estresado') tips.push(estresadoTip);
+    if (mood === 'Tenso') tips.push(tensoTip);
 
     // Set dynamic modal title using current mood
     // Request 1: Change title to "¿Por qué estás [estado de animo]?"
@@ -217,11 +226,14 @@ elements.stressIndicator.addEventListener('click', () => {
     const stressHelpTitleEl = document.getElementById('stress-help-title');
     if (stressHelpTitleEl) stressHelpTitleEl.textContent = titleText;
 
+    // Render base count + tips. Use paragraph breaks for the main suggestions and single-line entries below.
     elements.stressHelpContent.innerHTML = `
         <p>Tienes ${unresolved} de ${total} elementos pendientes.</p>
-        <ul style="margin-top:8px; padding-left:18px;">
-            ${tips.map(t=>`<li>${t}</li>`).join('')}
-        </ul>
+        <div style="margin-top:8px; line-height:1.4;">
+            ${baseTips.map(p => `<p style="margin:8px 0;">${p}</p>`).join('')}
+            ${mood === 'Estresado' ? `<p style="margin:10px 0; font-weight:600;">${estresadoTip}</p>` : ''}
+            ${mood === 'Tenso' ? `<p style="margin:10px 0; font-weight:600;">${tensoTip}</p>` : ''}
+        </div>
     `;
     showModal(elements.stressHelpModal);
 });
@@ -264,8 +276,14 @@ function renderMainList() {
 }
 
 function recalcXpFromCompletedGoals() {
-    // Sum points only for goals that are completed (archived === true)
-    const completedGoals = appState.items.filter(i => i.type === 'goal' && i.isArchived && typeof i.points === 'number');
+    // Sum points only for goals that are completed (isMilestoneCompleted === true)
+    // 2. XP only comes from truly completed goals
+    const completedGoals = appState.items.filter(i => 
+        i.type === 'goal' && 
+        i.isArchived && 
+        i.isCompletedMilestone === true && 
+        typeof i.points === 'number'
+    );
     appState.user.xp = completedGoals.reduce((s, g) => s + (g.points || 0), 0);
 }
 
@@ -313,22 +331,39 @@ function handleEditItem(id) {
 
 function handleMarkItem(id) {
     const item = findItemById(id);
-    if (item) {
-        item.isMarked = !item.isMarked;
-        updateStateAndRender();
+    if (!item) return;
+
+    if (item.isMarked === true) {
+        // User is UNMARKING/UNFOCUSING it (setting to false)
+        item.isMarked = false;
+
+        if (item.type === 'goal') {
+            // Requirement 3: Unfocusing a goal archives it to "Memoria"
+            item.isArchived = true;
+            item.isCompletedMilestone = false; // Not a completed milestone
+            alert('Hito retirado de enfoque y movido a Memoria (Memoria).');
+        }
+    } else {
+        // User is MARKING/FOCUSING it (setting to true)
+        item.isMarked = true;
     }
+    updateStateAndRender();
 }
 
 function handleArchiveItem(id) {
     const item = findItemById(id);
     if (item) {
         item.isArchived = true;
-        item.isMarked = true; // Counts as resolved
+        item.isMarked = true; // Counts as resolved/completed
 
-        if (item.type === 'goal' && item.points > 0) {
-            // Grant XP for completing a goal/milestone
-            appState.user.xp += item.points;
-            alert(`¡Hito completado! Ganaste ${item.points} XP.`);
+        if (item.type === 'goal') {
+            // Completion path (Archived to Progreso)
+            item.isCompletedMilestone = true; // Mark as truly completed milestone
+            
+            if (item.points > 0) {
+                 // XP calculation relies on recalcXpFromCompletedGoals, only keep the alert.
+                 alert(`¡Hito completado! Ganaste ${item.points} XP.`);
+            }
         }
         
         // Remove item from visible list by setting archived status.
@@ -342,8 +377,10 @@ function handleRecoverItem(id) {
         item.isArchived = false;
         item.isMarked = false; // Reset marked status when recovering
 
-        // If it's a goal, ensure it moves to the top of the non-archived list upon recovery
-        // We will reorder below during state update.
+        // If it was a completed milestone, remove the completion flag so it doesn't count for XP anymore
+        if (item.isCompletedMilestone) {
+             item.isCompletedMilestone = false;
+        }
         
         // Re-render modals if open, then re-render main list
         renderArchivedModal(); 
@@ -485,7 +522,7 @@ function resetModalFormState(modalElement) {
         elements.itemGoalForm.reset();
         elements.itemGoalModalTitle.textContent = 'Crear Nuevo Objetivo';
         elements.itemGoalSaveButton.textContent = 'Guardar';
-        elements.itemGoalIcon.value = '🎯';
+        elements.itemGoalIcon.value = '🧩'; // 1. Default icon for goals changed to 🧩
         elements.goalDifficultySelect.value = 'easy';
     }
     // Also reset any other modals if needed (e.g., archived/milestones) but they don't have forms.
@@ -553,7 +590,7 @@ function handleItemSubmission(e, type, titleInput, iconInput, descriptionInput, 
             isMarked: false, 
             isArchived: false, 
             type,
-            ...(type === 'goal' && { difficulty, points })
+            ...(type === 'goal' && { difficulty, points, isCompletedMilestone: false }) // Initialize completion flag
         };
         // Add new item to the start of the visible list
         const visibleItems = appState.items.filter(item => !item.isArchived);
@@ -703,8 +740,12 @@ function renderModalList(listElement, items, type) {
 
 
 function renderArchivedModal() {
-    const archivedTasks = appState.items.filter(item => item.type === 'task' && item.isArchived);
-    renderModalList(elements.archivedList, archivedTasks, 'actividades');
+    // Memoria: Tasks (archived) + Goals (archived AND not completed milestones)
+    const archivedTasks = appState.items.filter(item => 
+        (item.type === 'task' && item.isArchived) || 
+        (item.type === 'goal' && item.isArchived && item.isCompletedMilestone === false)
+    );
+    renderModalList(elements.archivedList, archivedTasks, 'actividades/hitos retirados');
 }
 
 elements.showArchivedButton.addEventListener('click', () => {
@@ -715,8 +756,8 @@ elements.showArchivedButton.addEventListener('click', () => {
 
 
 function renderMilestonesModal() {
-    // Milestones are archived goals (hitos)
-    const milestones = appState.items.filter(item => item.type === 'goal' && item.isArchived);
+    // Progreso: Goals that were completed (isArchived AND isCompletedMilestone)
+    const milestones = appState.items.filter(item => item.type === 'goal' && item.isArchived && item.isCompletedMilestone === true);
     renderModalList(elements.milestonesList, milestones, 'hitos');
 }
 

@@ -54,8 +54,26 @@ function generateActionButtons(item, isInModal) {
         `;
     } else {
         // Actions for main list items: Edit, Mark/Unmark, Archive/Complete, Delete
-        const markIcon = item.isMarked ? '👀' : '✔️';
-        const markTitle = item.isMarked ? 'Enfocar' : 'Desenfocar';
+        let markIcon;
+        let markTitle;
+
+        if (item.isMarked) {
+            // Currently Focused/Marked. Next action is UNFOCUS/DESENFOCAR.
+            markTitle = 'Desenfocar';
+            if (item.type === 'goal') {
+                // Hitos unfocus emoji
+                markIcon = '🔕'; 
+            } else { // task
+                // Actividades unfocus emoji -> use 🔕 as requested
+                markIcon = '🔕';
+            }
+        } else {
+            // Currently Unfocused/Unmarked. Next action is FOCUS/ENFOCAR.
+            markTitle = 'Enfocar';
+            // Use wand emoji for both goals and tasks (replace previous 👀)
+            markIcon = '🪄';
+        }
+        
         // For tasks use "Liberar actividad" with dove emoji; goals keep their "Completar Hito" behavior
         const archiveIcon = item.type === 'task' ? '🕊️' : '🧩';
         const archiveTitle = item.type === 'task' ? 'Liberar actividad' : 'Completar Hito';
