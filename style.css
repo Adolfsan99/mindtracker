@@ -377,6 +377,14 @@ body {
     background: var(--color-surface);
 }
 
+.item-card.marked .item-details,
+.item-card.marked .item-details .item-title,
+.item-card.marked .item-details .item-description-full,
+.item-card.marked .item-details .item-description-toggle {
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
+}
+
 .item-icon {
     font-size: 1.8em;
     text-align: center;

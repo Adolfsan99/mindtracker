@@ -353,20 +353,21 @@ function handleMarkItem(id) {
 function handleArchiveItem(id) {
     const item = findItemById(id);
     if (item) {
-        item.isArchived = true;
-        item.isMarked = true; // Counts as resolved/completed
-
+        // If it's a goal, request confirmation before marking as completed milestone
         if (item.type === 'goal') {
-            // Completion path (Archived to Progreso)
+            const confirmMsg = `¿Confirmas que deseas completar este hito? Se marcará como completado y obtendrás ${item.points || 0} XP.`;
+            if (!confirm(confirmMsg)) return;
+            item.isArchived = true;
+            item.isMarked = true; // Counts as resolved/completed
             item.isCompletedMilestone = true; // Mark as truly completed milestone
-            
             if (item.points > 0) {
-                 // XP calculation relies on recalcXpFromCompletedGoals, only keep the alert.
-                 alert(`¡Hito completado! Ganaste ${item.points} XP.`);
+                alert(`¡Hito completado! Ganaste ${item.points} XP.`);
             }
+        } else {
+            // Tasks: archive without milestone confirmation
+            item.isArchived = true;
+            item.isMarked = true;
         }
-        
-        // Remove item from visible list by setting archived status.
         updateStateAndRender();
     }
 }
@@ -776,21 +777,21 @@ elements.showDataManagementButton.addEventListener('click', () => {
 });
 
 
-function exportData() {
+function exportData(filename, silent = false) {
     try {
         const dataStr = JSON.stringify(appState, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
-        const exportFileDefaultName = `progress_tracker_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        const exportFileDefaultName = filename || `Mindtracker Autosave (${new Date().toISOString().replace(/:/g,'-').slice(0,19)}).json`;
 
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
-        alert('Datos exportados y guardados localmente.');
+        if (!silent) alert('Datos exportados y guardados localmente.');
     } catch (e) {
         console.error("Error exporting data:", e);
-        alert('Error al exportar datos.');
+        if (!silent) alert('Error al exportar datos.');
     }
 }
 
@@ -878,6 +879,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMainList();
     // Set initial sidebar top after layout is ready
     setTimeout(adjustSidebarTop, 0);
+    // 2. On first run (no existing saved state key), create an autosave file
+    try {
+        const STORAGE_KEY = 'progressTrackerState';
+        if (!localStorage.getItem(STORAGE_KEY)) {
+            // Export a timestamped autosave file silently (no user alerts)
+            exportData(`Mindtracker Autosave (${new Date().toISOString().replace(/:/g,'-').slice(0,19)}).json`, true);
+        }
+    } catch (e) {
+        console.warn('Autosave failed:', e);
+    }
 });
 
 function initializeAppTitle() {
