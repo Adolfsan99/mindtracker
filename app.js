@@ -394,6 +394,33 @@ function handleRecoverItem(id) {
     }
 }
 
+function handleCloneItem(id) {
+    const originalItem = findItemById(id);
+    // Only clone goals
+    if (!originalItem || originalItem.type !== 'goal') return;
+
+    // Create a new item object based on the original, but reset status
+    const newItem = {
+        ...originalItem,
+        id: generateId(), // Essential: New unique ID
+        isMarked: false, 
+        isArchived: false,
+        isCompletedMilestone: false // Must be reset since it's a new attempt
+    };
+
+    // Insert the new item into the active list (at the beginning)
+    const visibleItems = appState.items.filter(item => !item.isArchived);
+    const archivedItems = appState.items.filter(item => item.isArchived);
+
+    visibleItems.unshift(newItem);
+    appState.items = [...visibleItems, ...archivedItems];
+
+    alert(`Hito clonado: "${newItem.title}" añadido a tu lista principal.`);
+    
+    updateStateAndRender();
+}
+
+
 function handleDeleteItem(id) {
     if (confirm("¿Estás seguro de que quieres eliminar este elemento permanentemente?")) {
         appState.items = appState.items.filter(item => item.id !== id);
@@ -729,6 +756,13 @@ function renderModalList(listElement, items, type) {
     listElement.querySelectorAll('.recover-item').forEach(button => {
         button.addEventListener('click', (e) => {
             handleRecoverItem(e.target.dataset.id);
+        });
+    });
+
+    // New listener for cloning goals
+    listElement.querySelectorAll('.clone-item').forEach(button => {
+        button.addEventListener('click', (e) => {
+            handleCloneItem(e.target.dataset.id);
         });
     });
 

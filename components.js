@@ -48,7 +48,12 @@ export function createItemCard(item, isInModal = false) {
 
 function generateActionButtons(item, isInModal) {
     if (isInModal) {
+        // New: Clone button for goals in archived/milestones modals
+        const cloneButton = (item.type === 'goal') ? 
+            `<button class="action-button clone-item secondary-button" data-id="${item.id}" title="Clonar Hito">🔄</button>` : '';
+
         return `
+            ${cloneButton}
             <button class="action-button recover-item primary-button" data-id="${item.id}" title="Recuperar">↩️</button>
             <button class="action-button delete-item danger-button" data-id="${item.id}" title="Eliminar Permanentemente">🗑️</button>
         `;

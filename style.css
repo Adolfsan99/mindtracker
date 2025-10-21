@@ -385,6 +385,15 @@ body {
     -webkit-filter: blur(2px);
 }
 
+/* Disable blur effect for items rendered inside archived/milestones modals (Memoria / Progreso) */
+.modal-list .item-card.marked .item-details,
+.modal-list .item-card.marked .item-details .item-title,
+.modal-list .item-card.marked .item-details .item-description-full,
+.modal-list .item-card.marked .item-details .item-description-toggle {
+    filter: none;
+    -webkit-filter: none;
+}
+
 .item-icon {
     font-size: 1.8em;
     text-align: center;
@@ -829,7 +838,7 @@ button {
 }
 
 .modal-list .item-card {
-    grid-template-columns: 40px 1fr 70px;
+    grid-template-columns: 40px 1fr 120px; /* Increased action column width to accommodate 3 buttons */
     gap: var(--spacing-md);
     padding: var(--spacing-md);
 }
