@@ -260,7 +260,7 @@ function renderMainList() {
         elements.listSectionHeader.classList.add('invitation-text');
     } else {
         // Hide the header text when populated, as requested ("obvious and redundant")
-        elements.listSectionHeader.textContent = '';
+        elements.listSectionHeader.textContent = 'Lista de preocupaciones';
         elements.listSectionHeader.classList.remove('invitation-text');
 
         visibleItems.forEach(item => {
