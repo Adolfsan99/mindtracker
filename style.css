@@ -377,6 +377,12 @@ body {
     background: var(--color-surface);
 }
 
+/* Reduce brightness by 50% for tasks that have been unfocused (desenfocados) */
+.item-card.unfocused {
+    filter: brightness(50%);
+    -webkit-filter: brightness(50%);
+}
+
 .item-card.marked .item-details,
 .item-card.marked .item-details .item-title,
 .item-card.marked .item-details .item-description-full,

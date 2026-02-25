@@ -13,7 +13,11 @@ export function generateId() {
  */
 export function createItemCard(item, isInModal = false) {
     const card = document.createElement('div');
-    card.className = `item-card ${item.type} ${item.isMarked ? 'marked' : ''}`;
+    // Apply the "marked" class only for goals to avoid blurring regular activities/tasks
+    const markedClass = (item.isMarked && item.type === 'goal') ? 'marked' : '';
+    // Apply "unfocused" class for tasks that are NOT focused (isMarked === false)
+    const unfocusedClass = (item.type === 'task' && !item.isMarked) ? 'unfocused' : '';
+    card.className = `item-card ${item.type} ${markedClass} ${unfocusedClass}`.trim();
     card.setAttribute('data-id', item.id);
     // Allow drag only if not in modal and not archived (though rendering handles archived status)
     card.setAttribute('draggable', isInModal ? 'false' : 'true');

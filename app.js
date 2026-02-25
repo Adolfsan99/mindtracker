@@ -147,31 +147,29 @@ let isFabOpen = false; // Tracks FAB menu state
 // --- CORE LOGIC ---
 
 function calculateStress() {
-    const totalItems = appState.items.filter(item => !item.isArchived).length;
+    // Count only non-archived items
+    const visibleItems = appState.items.filter(item => !item.isArchived);
+    const totalItems = visibleItems.length;
     
     if (totalItems === 0) {
         elements.stressEmoji.textContent = '😌';
         elements.stressPercentage.textContent = 'Calmado';
         elements.stressIndicator.className = 'stress-indicator stress-low';
+        elements.stressIndicator.dataset.mood = 'Calmado';
         return;
     }
 
-    // Resolved items are marked (but only count non-archived items)
-    const resolvedItemsCount = appState.items.filter(item => !item.isArchived && item.isMarked).length;
-    const unresolvedItemsCount = totalItems - resolvedItemsCount;
+    // NOTE: Inverted logic: focused items (isMarked === true) increase stress,
+    // while unfocused items reduce it.
+    const focusedCount = visibleItems.filter(item => item.isMarked === true).length;
 
-    const stressRatio = unresolvedItemsCount / totalItems; // 0 to 1 (100% stress = stressRatio 1)
-    const calmPercentage = Math.round((1 - stressRatio) * 100);
-
+    const stressRatio = focusedCount / totalItems; // 0 to 1 (1 == highest stress)
+    
     let emoji;
     let mood;
     let stressClass;
 
-    // Adjusted thresholds:
-    // Estresado: Stress Ratio > 0.66 (Calm % 0-33) -> stress-high
-    // Neutro: Stress Ratio > 0.33 and <= 0.66 (Calm % 34-66) -> stress-medium
-    // Calmado: Stress Ratio <= 0.33 (Calm % 67-100) -> stress-low
-    
+    // Thresholds remain the same but now apply to focused ratio
     if (stressRatio > 0.66) { 
         emoji = '😨'; // Highly Stressed
         mood = 'Estresado';
@@ -187,9 +185,8 @@ function calculateStress() {
     }
     
     elements.stressEmoji.textContent = emoji;
-    elements.stressPercentage.textContent = `${mood}`; // only show mood word, percentage removed
+    elements.stressPercentage.textContent = `${mood}`;
     elements.stressIndicator.className = `stress-indicator ${stressClass}`;
-    // Expose mood for conditional help modal display
     elements.stressIndicator.dataset.mood = mood;
 }
 
