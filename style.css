@@ -377,28 +377,9 @@ body {
     background: var(--color-surface);
 }
 
-/* Reduce brightness by 50% for tasks that have been unfocused (desenfocados) */
-.item-card.unfocused {
-    filter: brightness(50%);
-    -webkit-filter: brightness(50%);
-}
 
-.item-card.marked .item-details,
-.item-card.marked .item-details .item-title,
-.item-card.marked .item-details .item-description-full,
-.item-card.marked .item-details .item-description-toggle {
-    filter: blur(2px);
-    -webkit-filter: blur(2px);
-}
 
-/* Disable blur effect for items rendered inside archived/milestones modals (Memoria / Progreso) */
-.modal-list .item-card.marked .item-details,
-.modal-list .item-card.marked .item-details .item-title,
-.modal-list .item-card.marked .item-details .item-description-full,
-.modal-list .item-card.marked .item-details .item-description-toggle {
-    filter: none;
-    -webkit-filter: none;
-}
+
 
 .item-icon {
     font-size: 1.8em;
